@@ -44,10 +44,10 @@ function doStream(request, response, filePath, stats, MIME){
     if(range){
         let parts = range.replace(/bytes=/,"").split("-");
         let start = parseInt(parts[0], 10);
-        let end = parts[1] ? parseInt(parts1, 10) : stats.size - 1;
+        let end = parts[1] ? parseInt(parts1, 10) : fileStats.size - 1;
         let chunkSize = (end - start) + 1;
         streamOptions = {start, end};
-        responseOptions["Content-Range"] = `btyes ${start}-${end}/${stats.size}`;
+        responseOptions["Content-Range"] = `btyes ${start}-${end}/${fileStats.size}`;
         responseOptions["Accept-Ranges"] = "bytes";
         responseOptions["Content-Length"] = chunkSize;
         responseCode = 206; // Partial data
