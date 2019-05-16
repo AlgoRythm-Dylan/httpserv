@@ -9,7 +9,7 @@ Dead simple, unbloated HTTP(s) request handler, perfect for the programmer with 
 
 ```js
 const http = require("http"); // Or you could use HTTPS
-const httpserv = require("httpserv"); // or "./httpserv" if you downloaded the source
+const httpserv = require("algo-httpserv"); // or "./httpserv" if you downloaded the source
 const server = http.createServer(httpserv.serve);
 server.listen(serverOptions.port);
 ```
@@ -74,4 +74,3 @@ They're right near the top. Of course, this behavior is ignored with custom hand
 - File serving is stream-based
 - Files do not cache (Although, I have interest in implementing this)
 - No dependencies
-- Streaming audio and video should be okay, but it is untested
