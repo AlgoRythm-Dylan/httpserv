@@ -1,6 +1,7 @@
 // Stream-based KISS HTTP(S) server
 
 const url = require("url");
+const pathlib = require("path")
 const fs = require("fs");
 
 // A small database of MIME associations
@@ -32,7 +33,7 @@ var MIMES = {
     ".zip": "application/zip"
 }
 
-var servePath = "serve";
+var servePath = "serve/";
 function doStream(request, response, filePath, stats, MIME){
     let responseOptions = {};
     let streamOptions = {};
@@ -82,7 +83,11 @@ module.exports.serve = function(request, response){
         MIME = MIMES[fileType];
     }
     // Serve the actual file
-    var filePath = servePath + path;
+    var filePath = pathlib.join(servePath, path);
+    if(filePath.indexOf(servePath) !== 0){
+        response.end();
+        return;
+    }
     let handler = handlers[path];
     if(handler !== undefined){
         if(handler.requestTypes === null || handler.requestTypes.indexOf(request.method) != -1){
