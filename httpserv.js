@@ -57,7 +57,23 @@ function doStream(request, response, filePath, stats, MIME){
     fs.createReadStream(filePath, streamOptions).pipe(response);
 }
 
-var handlers = {};
+var handlers = [];
+function emit(path, request, response, parsedURL){
+    var handled = false;
+    for(var i = 0; i < handlers.length; i++){
+        var handleThis = false;
+        if(typeof handlers[i].path == "object"){ // Regexes are objects.
+            handleThis = path.match(handlers[i].path) !== null;
+        }
+        else if(typeof handlers[i].path == "string"){
+            handleThis = path === handlers[i].path;
+        }
+        if(handleThis)
+            if(handlers[i].handlerFunction(request, response, parsedURL)) handled = true;
+
+    }
+    return handled;
+}
 
 module.exports.on = function(path, requestType, handler){
     if(typeof requestType == "function"){
@@ -66,10 +82,22 @@ module.exports.on = function(path, requestType, handler){
     }
     else if(typeof requestType == "string")
         requestType = [requestType];
-    handlers[path] = {
-        handler: handler,
-        requestTypes: requestType
-    };
+    var handlerFunction = function(request, response, parsedURL){
+        if(!requestType){
+            handler(request, response, parsedURL);
+            return true;
+        }
+        else if(requestType.indexOf(request.method) != -1){
+            handler(request, response, parsedURL);
+            return true;
+        }
+        return false;
+    }
+    handlers.push({path, handlerFunction});
+}
+
+module.exports.setServePath = function(newPath){
+    servePath = newPath.replace(/\\/g, "/");
 }
 
 module.exports.serve = function(request, response){
@@ -83,18 +111,12 @@ module.exports.serve = function(request, response){
         MIME = MIMES[fileType];
     }
     // Serve the actual file
-    var filePath = pathlib.join(servePath, path);
-    if(filePath.indexOf(servePath) !== 0){
+    var filePath = pathlib.join(servePath, path).replace(/\\/g, '/');
+    if(!filePath.startsWith(servePath)){
         response.end();
         return;
     }
-    let handler = handlers[path];
-    if(handler !== undefined){
-        if(handler.requestTypes === null || handler.requestTypes.indexOf(request.method) != -1){
-            handler.handler(request, response, parsedURL);
-            return;
-        }
-    }
+    if(emit(path, request, response, parsedURL)) return;
     fs.stat(filePath, function(error, stats){
         if(error){
             // Whoopsie. See if they just omitted the .html
@@ -115,8 +137,4 @@ module.exports.serve = function(request, response){
             doStream(request, response, filePath, stats, MIME);
         }
     });
-}
-
-module.exports.setServePath = function(newPath){
-    servePath = newPath;
 }

@@ -26,7 +26,7 @@ server.listen(serverOptions.port);
 - Sure. Here's one that handles any method of request:
 
 ```js
-httpserv.on("/api_endpoint", (request, response, url) => {
+httpserv.on("/api_endpoint/", (request, response, url) => {
     response.writeHead(200, {"Content-Type": "application/json"});
     response.write(JSON.stringify(url.query));
     response.end();
@@ -36,7 +36,7 @@ httpserv.on("/api_endpoint", (request, response, url) => {
 - Here's one that handles only GET requests:
 
 ```js
-httpserv.on("/api_endpoint", "GET", (request, response, url) => {
+httpserv.on("/api_endpoint/", "GET", (request, response, url) => {
     response.writeHead(200, {"Content-Type": "application/json"});
     response.write(JSON.stringify(url.query));
     response.end();
@@ -46,9 +46,21 @@ httpserv.on("/api_endpoint", "GET", (request, response, url) => {
 - Here's one that handles both GET and POST requests:
 
 ```js
-httpserv.on("/api_endpoint", ["GET", "POST"], (request, response, url) => {
+httpserv.on("/api_endpoint/", ["GET", "POST"], (request, response, url) => {
     response.writeHead(200, {"Content-Type": "application/json"});
     response.write(JSON.stringify(url.query));
+    response.end();
+});
+```
+
+- **New and super exciting in version 1.2: Match with regex!**
+
+*Note: I am bad at regex*
+
+```js
+httpserv.on(/\/regex-endpoint\/*/, ["GET", "POST"], (request, response, url) => {
+    response.writeHead(200, {"Content-Type": "application/json"});
+    response.write("Regex requirement met!");
     response.end();
 });
 ```
@@ -56,6 +68,25 @@ httpserv.on("/api_endpoint", ["GET", "POST"], (request, response, url) => {
 *For the curious minds, the third parameter ("url") is just the result of `url.parse(request.url, true)`,
 which is convenient to have when handling your own requests. "request" and "response" are directly
 from the server*
+
+## Screw relative paths, amirite?
+
+**New in version 1.2: kick them to the curb!**
+
+use the function `setServePath` and the variable `__dirname` to make your script run from anywhere on the drive.
+Take a look!
+
+```js
+httpserv.setServePath(__dirname + "/serve");
+```
+
+Run it from anywhere! Here I am one directory up.
+
+![Relative paths are for losers](relative_paths_are_for_losers.png)
+
+**Or don't do that!**
+
+- *If that's too much work for you, httpserv still runs off relative paths by default. Which is ok enough I guess*
 
 ## Does it support HTTPS?
 
